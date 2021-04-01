@@ -14,8 +14,23 @@ def get_titles_from_search_results(filename):
 
     [('Book title 1', 'Author 1'), ('Book title 2', 'Author 2')...]
     """
-
-    pass
+    with open(filename) as f:
+        lines = f.read()
+    soup = BeautifulSoup(lines, 'lxml')
+    title_list = []
+    author_list = []
+    tup_list = []
+    title_tags = soup.find_all('a', class_ = 'bookTitle')
+    for a_tags in title_tags:
+        #a_tags = a_tags.strip()
+        title_list.append(a_tags.text.strip())
+    author_tags = soup.find_all('span', itemprop = 'author')
+    for tag in author_tags:
+        #tag = tag.strip()
+        author_list.append(tag.text.strip())
+    for i in range(len(title_list)):
+        tup_list.append((title_list[i], author_list[i]))
+    return tup_list
 
 
 def get_search_links():
@@ -31,11 +46,19 @@ def get_search_links():
     “https://www.goodreads.com/book/show/kdkd".
 
     """
+    url = "https://www.goodreads.com/search?q=fantasy&qid=NwUsLiA2Nc"
+    r = requests.get(url)
+    soup = BeautifulSoup(r.text, 'html.parser')
+    url_list = []
+    url_tags = soup.find_all('a', class_ = 'bookTitle')
+    for link in url_tags:
+        if link.get("href").startswith("/book/show/"):
+            url_list.append("https://www.goodreads.com" + link.get("href"))
+    return url_list[:10]
+    
 
-    pass
 
-
-def get_book_summary(book_url):
+#def get_book_summary(book_url):
     """
     Write a function that creates a BeautifulSoup object that extracts book
     information from a book's webpage, given the URL of the book. Parse through
@@ -49,10 +72,10 @@ def get_book_summary(book_url):
     Make sure to strip() any newlines from the book title and number of pages.
     """
 
-    pass
+    #pass
 
 
-def summarize_best_books(filepath):
+#def summarize_best_books(filepath):
     """
     Write a function to get a list of categories, book title and URLs from the "BEST BOOKS OF 2020"
     page in "best_books_2020.htm". This function should create a BeautifulSoup object from a 
@@ -63,10 +86,10 @@ def summarize_best_books(filepath):
     ("Fiction", "The Testaments (The Handmaid's Tale, #2)", "https://www.goodreads.com/choiceawards/best-fiction-books-2020") 
     to your list of tuples.
     """
-    pass
+    #pass
 
 
-def write_csv(data, filename):
+#def write_csv(data, filename):
     """
     Write a function that takes in a list of tuples (called data, i.e. the
     one that is returned by get_titles_from_search_results()), writes the data to a 
@@ -86,7 +109,7 @@ def write_csv(data, filename):
 
     This function should not return anything.
     """
-    pass
+    #pass
 
 
 def extra_credit(filepath):
@@ -96,35 +119,44 @@ def extra_credit(filepath):
     Please see the instructions document for more information on how to complete this function.
     You do not have to write test cases for this function.
     """
-    pass
+    with open(os.path.join(os.path.abspath(os.path.dirname(__file__)), filepath), 'r') as f:
+        lines = f.read()
+    
+    
 
 class TestCases(unittest.TestCase):
 
     # call get_search_links() and save it to a static variable: search_urls
-
+    search_urls = get_search_links()
 
     def test_get_titles_from_search_results(self):
         # call get_titles_from_search_results() on search_results.htm and save to a local variable
-
+        list_of_tup = get_titles_from_search_results("search_results.htm")
         # check that the number of titles extracted is correct (20 titles)
-
+        self.assertEqual(len(list_of_tup), 20)
         # check that the variable you saved after calling the function is a list
-
+        self.assertEqual(type(list_of_tup), list)
         # check that each item in the list is a tuple
-
+        for i in list_of_tup:
+            self.assertEqual(type(i), tuple)
         # check that the first book and author tuple is correct (open search_results.htm and find it)
-
+        self.assertEqual(list_of_tup[0][0], 'Harry Potter and the Deathly Hallows (Harry Potter, #7)')
+        self.assertEqual(list_of_tup[0][1], 'J.K. Rowling')
         # check that the last title is correct (open search_results.htm and find it)
+        self.assertEqual(list_of_tup[-1][0], 'Harry Potter: The Prequel (Harry Potter, #0.5)')
+        self.assertEqual(list_of_tup[-1][1], 'J.K. Rowling')
 
     def test_get_search_links(self):
         # check that TestCases.search_urls is a list
-
+        self.assertEqual(type(TestCases.search_urls), list)
         # check that the length of TestCases.search_urls is correct (10 URLs)
-
-
+        self.assertEqual(len(self.search_urls), 10)
         # check that each URL in the TestCases.search_urls is a string
+        for i in self.search_urls:
+            self.assertEqual(type(i), str)
         # check that each URL contains the correct url for Goodreads.com followed by /book/show/
 
+        
 
     def test_get_book_summary(self):
         # create a local variable – summaries – a list containing the results from get_book_summary()
@@ -141,7 +173,7 @@ class TestCases(unittest.TestCase):
             # check that the third element in the tuple, i.e. pages is an int
 
             # check that the first book in the search has 337 pages
-
+        pass
 
     def test_summarize_best_books(self):
         # call summarize_best_books and save it to a variable
@@ -155,7 +187,7 @@ class TestCases(unittest.TestCase):
         # check that the first tuple is made up of the following 3 strings:'Fiction', "The Midnight Library", 'https://www.goodreads.com/choiceawards/best-fiction-books-2020'
 
         # check that the last tuple is made up of the following 3 strings: 'Picture Books', 'Antiracist Baby', 'https://www.goodreads.com/choiceawards/best-picture-books-2020'
-
+        pass
 
     def test_write_csv(self):
         # call get_titles_from_search_results on search_results.htm and save the result to a variable
@@ -172,11 +204,11 @@ class TestCases(unittest.TestCase):
         # check that the next row is 'Harry Potter and the Deathly Hallows (Harry Potter, #7)', 'J.K. Rowling'
 
         # check that the last row is 'Harry Potter: The Prequel (Harry Potter, #0.5)', 'J.K. Rowling'
-
+        pass
 
 
 if __name__ == '__main__':
-    print(extra_credit("extra_credit.htm"))
+    #print(extra_credit("extra_credit.htm"))
     unittest.main(verbosity=2)
 
 
