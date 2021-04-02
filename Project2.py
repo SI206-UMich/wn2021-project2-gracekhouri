@@ -58,7 +58,7 @@ def get_search_links():
     
 
 
-#def get_book_summary(book_url):
+def get_book_summary(book_url):
     """
     Write a function that creates a BeautifulSoup object that extracts book
     information from a book's webpage, given the URL of the book. Parse through
@@ -71,8 +71,14 @@ def get_search_links():
     You can easily capture CSS selectors with your browser's inspector window.
     Make sure to strip() any newlines from the book title and number of pages.
     """
-
-    #pass
+    r = requests.get(book_url)
+    soup = BeautifulSoup(r.text, 'html.parser')
+    book_title = soup.find('h1', id = 'bookTitle').text.strip()
+    book_author_anchor = soup.find('div', class_ = 'authorName__container')
+    book_author = book_author_anchor.find('span').text.strip()
+    book_pages = int(soup.find('span', itemprop = 'numberOfPages').text.strip()[:-6])
+    tup = (book_title, book_author, book_pages)
+    return tup
 
 
 #def summarize_best_books(filepath):
@@ -89,7 +95,7 @@ def get_search_links():
     #pass
 
 
-#def write_csv(data, filename):
+def write_csv(data, filename):
     """
     Write a function that takes in a list of tuples (called data, i.e. the
     one that is returned by get_titles_from_search_results()), writes the data to a 
@@ -109,7 +115,12 @@ def get_search_links():
 
     This function should not return anything.
     """
-    #pass
+    #outFile = open(filename, 'w')
+    #csv_writer = csv.writer(outFile, delimiter = ',')
+    #csv_writer.writerow(['Book Title,Author Name'])
+    #for line in data:
+        #csv_writer.writerow(line)
+    #outFile.close()
 
 
 def extra_credit(filepath):
@@ -121,8 +132,14 @@ def extra_credit(filepath):
     """
     with open(os.path.join(os.path.abspath(os.path.dirname(__file__)), filepath), 'r') as f:
         lines = f.read()
-    
-    
+    soup = BeautifulSoup(lines, 'lxml')
+    data = soup.find('div', class_ = 'readable stacked')
+    data1 = data.find('span', id = 'freeText4791443123668479528').text
+    entities = re.findall(r'([A-Z]{1}\w+ [A-Z]\w+ ?([A-Z]\w+)? ?([A-Z]\w+)? ?([A-Z]\w+)?)', data1)
+    entity_list = []
+    for entity in entities:
+        entity_list.append(entity[0])
+    return entity_list
 
 class TestCases(unittest.TestCase):
 
@@ -161,19 +178,24 @@ class TestCases(unittest.TestCase):
     def test_get_book_summary(self):
         # create a local variable – summaries – a list containing the results from get_book_summary()
         # for each URL in TestCases.search_urls (should be a list of tuples)
-
+        summaries = []
+        for url in TestCases.search_urls:
+            result_tup = get_book_summary(url)
+            summaries.append(result_tup)
         # check that the number of book summaries is correct (10)
-
+        self.assertEqual(len(summaries), 10)
             # check that each item in the list is a tuple
-
+        for item in summaries:
+            self.assertEqual(type(item), tuple)
             # check that each tuple has 3 elements
-
+            self.assertEqual(len(item), 3)
             # check that the first two elements in the tuple are string
-
+            self.assertEqual(type(item[0]), str)
+            self.assertEqual(type(item[1]), str)
             # check that the third element in the tuple, i.e. pages is an int
-
+            self.assertEqual(type(item[2]), int) 
             # check that the first book in the search has 337 pages
-        pass
+        self.assertEqual(summaries[0][2], 337)   
 
     def test_summarize_best_books(self):
         # call summarize_best_books and save it to a variable
@@ -208,7 +230,7 @@ class TestCases(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    #print(extra_credit("extra_credit.htm"))
+    print(extra_credit("extra_credit.htm"))
     unittest.main(verbosity=2)
 
 
